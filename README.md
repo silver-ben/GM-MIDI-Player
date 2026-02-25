@@ -17,8 +17,14 @@ A free AUv2 MIDI instrument plugin for macOS. Plays all 128 General MIDI patches
 
 This plugin is not notarized with Apple, so macOS may block it the first time. To fix this, open Terminal and run:
 
+If installed to your user folder:
 ```bash
 xattr -cr ~/Library/Audio/Plug-Ins/Components/GM\ DLS\ Player.component
+```
+
+If installed to the system folder:
+```bash
+sudo xattr -cr /Library/Audio/Plug-Ins/Components/GM\ DLS\ Player.component
 ```
 
 Then restart your DAW.
