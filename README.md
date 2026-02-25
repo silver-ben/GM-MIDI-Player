@@ -1,36 +1,40 @@
 # GM DLS Player
 
-This repository contains my AUv2 instrument plugin, **GM DLS Player**.
+A free AUv2 MIDI instrument plugin for macOS. Plays all 128 General MIDI patches using Apple's DLS synthesizer. Works in Ableton Live, Logic Pro, and any AU-compatible host.
 
-It loads `gs_instruments.dls` from the plugin bundle and plays General MIDI patches in AU hosts like Ableton Live and Logic Pro.
+## Download
 
-## Project Layout
-
-- `GM-MIDI-AU/` - Xcode project, AU source, scripts, and plugin README
-- `gs_instruments.dls` - local DLS sound bank used by the plugin
-
-## Build
-
-```bash
-./GM-MIDI-AU/scripts/build_debug.sh
-./GM-MIDI-AU/scripts/build_release.sh
-```
+**[Download the latest release](https://github.com/silver-ben/GM-MIDI-Player/releases/latest)**
 
 ## Install
 
+1. Download **GM-DLS-Player-v2.0.1.dmg** from the link above
+2. Open the DMG
+3. Copy **GM DLS Player.component** to `~/Library/Audio/Plug-Ins/Components/`
+4. Open your DAW and rescan plug-ins
+
+### macOS Security Notice
+
+This plugin is not notarized with Apple, so macOS may block it the first time. To fix this, open Terminal and run:
+
 ```bash
-./GM-MIDI-AU/scripts/install_component.sh
-./GM-MIDI-AU/scripts/reset_au_cache.sh
+xattr -cr ~/Library/Audio/Plug-Ins/Components/GM\ DLS\ Player.component
 ```
 
-Installed component path:
+Then restart your DAW.
 
-`~/Library/Audio/Plug-Ins/Components/GM DLS Player.component`
+## Features
 
-## Quick Verify
+- 128 General MIDI instruments
+- Searchable patch browser with categories
+- Universal binary (Apple Silicon & Intel)
+- Zero configuration — works out of the box
 
-1. Open your AU host and rescan plug-ins.
-2. Insert **GM DLS Player** on an instrument track.
-3. Set program `0` for Acoustic Grand Piano and play MIDI notes.
+## Building from Source
+
+```bash
+./GM-MIDI-AU/scripts/build_release.sh
+./GM-MIDI-AU/scripts/install_component.sh
+```
 
 Built and maintained by Ben Silver.
