@@ -1,0 +1,276 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		A1B2C3D4E5F6000000000018 /* GMDLSPlayerAU.mm in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6000000000030 /* GMDLSPlayerAU.mm */; };
+		A1B2C3D4E5F6000000000019 /* GMDLSPlayerViewFactory.m in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6000000000031 /* GMDLSPlayerViewFactory.m */; };
+		A1B2C3D4E5F600000000001A /* GMDLSShared.mm in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6000000000032 /* GMDLSShared.mm */; };
+		A1B2C3D4E5F600000000001B /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6000000000040 /* AppKit.framework */; };
+		A1B2C3D4E5F600000000001C /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6000000000041 /* AudioToolbox.framework */; };
+		A1B2C3D4E5F600000000001D /* AudioUnit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6000000000042 /* AudioUnit.framework */; };
+		A1B2C3D4E5F600000000001E /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6000000000043 /* CoreAudio.framework */; };
+		A1B2C3D4E5F600000000001F /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6000000000044 /* CoreServices.framework */; };
+		A1B2C3D4E5F6000000000020 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6000000000045 /* Foundation.framework */; };
+		A1B2C3D4E5F6000000000035 /* gs_instruments.dls in Resources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6000000000034 /* gs_instruments.dls */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		A1B2C3D4E5F6000000000017 /* GM DLS Player.component */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "GM DLS Player.component"; sourceTree = BUILT_PRODUCTS_DIR; };
+		A1B2C3D4E5F6000000000030 /* GMDLSPlayerAU.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = GMDLSPlayerAU.mm; sourceTree = "<group>"; };
+		A1B2C3D4E5F6000000000031 /* GMDLSPlayerViewFactory.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = GMDLSPlayerViewFactory.m; sourceTree = "<group>"; };
+		A1B2C3D4E5F6000000000032 /* GMDLSShared.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = GMDLSShared.mm; sourceTree = "<group>"; };
+		A1B2C3D4E5F6000000000036 /* GMDLSShared.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GMDLSShared.h; sourceTree = "<group>"; };
+		A1B2C3D4E5F6000000000033 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A1B2C3D4E5F6000000000034 /* gs_instruments.dls */ = {isa = PBXFileReference; lastKnownFileType = file; path = ../gs_instruments.dls; sourceTree = SOURCE_ROOT; };
+		A1B2C3D4E5F6000000000040 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
+		A1B2C3D4E5F6000000000041 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
+		A1B2C3D4E5F6000000000042 /* AudioUnit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioUnit.framework; path = System/Library/Frameworks/AudioUnit.framework; sourceTree = SDKROOT; };
+		A1B2C3D4E5F6000000000043 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
+		A1B2C3D4E5F6000000000044 /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = System/Library/Frameworks/CoreServices.framework; sourceTree = SDKROOT; };
+		A1B2C3D4E5F6000000000045 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		A1B2C3D4E5F6000000000015 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A1B2C3D4E5F600000000001B /* AppKit.framework in Frameworks */,
+				A1B2C3D4E5F600000000001C /* AudioToolbox.framework in Frameworks */,
+				A1B2C3D4E5F600000000001D /* AudioUnit.framework in Frameworks */,
+				A1B2C3D4E5F600000000001E /* CoreAudio.framework in Frameworks */,
+				A1B2C3D4E5F600000000001F /* CoreServices.framework in Frameworks */,
+				A1B2C3D4E5F6000000000020 /* Foundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		A1B2C3D4E5F6000000000002 = {
+			isa = PBXGroup;
+			children = (
+				A1B2C3D4E5F6000000000004 /* Sources */,
+				A1B2C3D4E5F6000000000005 /* Resources */,
+				A1B2C3D4E5F6000000000006 /* Frameworks */,
+				A1B2C3D4E5F6000000000003 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		A1B2C3D4E5F6000000000003 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A1B2C3D4E5F6000000000017 /* GM DLS Player.component */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		A1B2C3D4E5F6000000000004 /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				A1B2C3D4E5F6000000000030 /* GMDLSPlayerAU.mm */,
+				A1B2C3D4E5F6000000000031 /* GMDLSPlayerViewFactory.m */,
+				A1B2C3D4E5F6000000000032 /* GMDLSShared.mm */,
+				A1B2C3D4E5F6000000000036 /* GMDLSShared.h */,
+			);
+			path = Sources;
+			sourceTree = "<group>";
+		};
+		A1B2C3D4E5F6000000000005 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				A1B2C3D4E5F6000000000033 /* Info.plist */,
+				A1B2C3D4E5F6000000000034 /* gs_instruments.dls */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		A1B2C3D4E5F6000000000006 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				A1B2C3D4E5F6000000000040 /* AppKit.framework */,
+				A1B2C3D4E5F6000000000041 /* AudioToolbox.framework */,
+				A1B2C3D4E5F6000000000042 /* AudioUnit.framework */,
+				A1B2C3D4E5F6000000000043 /* CoreAudio.framework */,
+				A1B2C3D4E5F6000000000044 /* CoreServices.framework */,
+				A1B2C3D4E5F6000000000045 /* Foundation.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		A1B2C3D4E5F6000000000007 /* GMDLSPlayerAU */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A1B2C3D4E5F6000000000009 /* Build configuration list for PBXNativeTarget "GMDLSPlayerAU" */;
+			buildPhases = (
+				A1B2C3D4E5F6000000000014 /* Sources */,
+				A1B2C3D4E5F6000000000015 /* Frameworks */,
+				A1B2C3D4E5F6000000000016 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = GMDLSPlayerAU;
+			productName = "GM DLS Player";
+			productReference = A1B2C3D4E5F6000000000017 /* GM DLS Player.component */;
+			productType = "com.apple.product-type.bundle";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		A1B2C3D4E5F6000000000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastUpgradeCheck = 2620;
+				TargetAttributes = {
+					A1B2C3D4E5F6000000000007 = {
+						CreatedOnToolsVersion = 26.2;
+					};
+				};
+			};
+			buildConfigurationList = A1B2C3D4E5F6000000000008 /* Build configuration list for PBXProject "GM-MIDI-AU" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = A1B2C3D4E5F6000000000002;
+			productRefGroup = A1B2C3D4E5F6000000000003 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				A1B2C3D4E5F6000000000007 /* GMDLSPlayerAU */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		A1B2C3D4E5F6000000000016 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A1B2C3D4E5F6000000000035 /* gs_instruments.dls in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		A1B2C3D4E5F6000000000014 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A1B2C3D4E5F6000000000018 /* GMDLSPlayerAU.mm in Sources */,
+				A1B2C3D4E5F6000000000019 /* GMDLSPlayerViewFactory.m in Sources */,
+				A1B2C3D4E5F600000000001A /* GMDLSShared.mm in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		A1B2C3D4E5F6000000000010 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		A1B2C3D4E5F6000000000011 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		A1B2C3D4E5F6000000000012 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "arm64 x86_64";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_HARDENED_RUNTIME = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Resources/Info.plist;
+				INSTALL_PATH = "$(HOME)/Library/Audio/Plug-Ins/Components";
+				MACH_O_TYPE = mh_bundle;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.bensilver.gmdlsplayer;
+				PRODUCT_NAME = "GM DLS Player";
+				SKIP_INSTALL = NO;
+				SUPPORTED_PLATFORMS = macosx;
+				WRAPPER_EXTENSION = component;
+			};
+			name = Debug;
+		};
+		A1B2C3D4E5F6000000000013 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "arm64 x86_64";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_HARDENED_RUNTIME = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Resources/Info.plist;
+				INSTALL_PATH = "$(HOME)/Library/Audio/Plug-Ins/Components";
+				MACH_O_TYPE = mh_bundle;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.bensilver.gmdlsplayer;
+				PRODUCT_NAME = "GM DLS Player";
+				SKIP_INSTALL = NO;
+				SUPPORTED_PLATFORMS = macosx;
+				WRAPPER_EXTENSION = component;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		A1B2C3D4E5F6000000000008 /* Build configuration list for PBXProject "GM-MIDI-AU" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A1B2C3D4E5F6000000000010 /* Debug */,
+				A1B2C3D4E5F6000000000011 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A1B2C3D4E5F6000000000009 /* Build configuration list for PBXNativeTarget "GMDLSPlayerAU" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A1B2C3D4E5F6000000000012 /* Debug */,
+				A1B2C3D4E5F6000000000013 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = A1B2C3D4E5F6000000000001 /* Project object */;
+}

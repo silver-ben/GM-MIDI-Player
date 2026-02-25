@@ -1,0 +1,19 @@
+# Build artifacts
+build/
+DerivedData/
+*.xcactivitylog
+
+# Xcode user settings
+*.pbxuser
+*.xcuserstate
+xcuserdata/
+
+# macOS
+.DS_Store
+**/.DS_Store
+
+# Claude
+.claude/
+
+# Project dev notes
+CODE_EXECUTION_RULES.md
