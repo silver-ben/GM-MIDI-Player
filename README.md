@@ -51,6 +51,6 @@ Then restart your DAW.
 
 Outputs:
 - `GM-MIDI-AU/build/release/GM-DLS-Player-v<version>.dmg`
-- `GM-MIDI-AU/build/release/GM-DLS-Player-v<version>-SHA256.txt`
+- `GM-MIDI-AU/build/release/GM-DLS-Player-v<version>.dmg.sha256.txt`
 
 Built and maintained by Ben Silver.
