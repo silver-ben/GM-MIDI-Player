@@ -17,9 +17,9 @@ fi
 mkdir -p "$TARGET_DIR"
 rm -rf "$TARGET_COMPONENT"
 cp -R "$SOURCE_COMPONENT" "$TARGET_COMPONENT"
-xattr -cr "$TARGET_COMPONENT" 2>/dev/null || true
+xattr -dr com.apple.quarantine "$TARGET_COMPONENT" 2>/dev/null || true
 
 echo "Installed: $TARGET_COMPONENT"
 echo "Installation mode: unsigned (not notarized)"
 echo "If macOS blocks loading, run:"
-echo "  xattr -cr \"$TARGET_COMPONENT\""
+echo "  xattr -dr com.apple.quarantine \"$TARGET_COMPONENT\""

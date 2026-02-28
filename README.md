@@ -19,12 +19,12 @@ This plugin is not notarized with Apple, so macOS may block it the first time. T
 
 If installed to your user folder:
 ```bash
-xattr -cr ~/Library/Audio/Plug-Ins/Components/GM\ DLS\ Player.component
+xattr -dr com.apple.quarantine ~/Library/Audio/Plug-Ins/Components/GM\ DLS\ Player.component
 ```
 
 If installed to the system folder:
 ```bash
-sudo xattr -cr /Library/Audio/Plug-Ins/Components/GM\ DLS\ Player.component
+sudo xattr -dr com.apple.quarantine /Library/Audio/Plug-Ins/Components/GM\ DLS\ Player.component
 ```
 
 Then restart your DAW.

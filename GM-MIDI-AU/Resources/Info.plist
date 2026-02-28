@@ -26,7 +26,7 @@
             <key>type</key>
             <string>aumu</string>
             <key>version</key>
-            <integer>131328</integer>
+            <integer>131329</integer>
         </dict>
     </array>
     <key>CFBundleDevelopmentRegion</key>
@@ -42,9 +42,9 @@
     <key>CFBundlePackageType</key>
     <string>BNDL</string>
     <key>CFBundleShortVersionString</key>
-    <string>2.1.0</string>
+    <string>2.1.1</string>
     <key>CFBundleVersion</key>
-    <string>2.1.0</string>
+    <string>2.1.1</string>
     <key>NSHumanReadableCopyright</key>
     <string>Copyright © 2026 Ben Silver</string>
 </dict>
