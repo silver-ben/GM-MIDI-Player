@@ -31,23 +31,25 @@ cp -R "$SOURCE_COMPONENT" "$STAGED_COMPONENT"
 xattr -cr "$STAGED_COMPONENT" 2>/dev/null || true
 
 ARTIFACT_BASENAME="GM-DLS-Player-v${VERSION}"
-ZIP_PATH="$RELEASE_DIR/${ARTIFACT_BASENAME}.zip"
+DMG_PATH="$RELEASE_DIR/${ARTIFACT_BASENAME}.dmg"
 CHECKSUM_PATH="$RELEASE_DIR/${ARTIFACT_BASENAME}-SHA256.txt"
 
-rm -f "$ZIP_PATH" "$CHECKSUM_PATH"
+rm -f "$DMG_PATH" "$CHECKSUM_PATH"
 
-(
-  cd "$STAGE_DIR"
-  /usr/bin/zip -r -X "$OLDPWD/$ZIP_PATH" "GM DLS Player.component" >/dev/null
-)
+hdiutil create \
+  -volname "GM DLS Player v${VERSION}" \
+  -srcfolder "$STAGE_DIR" \
+  -ov \
+  -format UDZO \
+  "$DMG_PATH" >/dev/null
 
 (
   cd "$RELEASE_DIR"
-  shasum -a 256 "$(basename "$ZIP_PATH")" > "$(basename "$CHECKSUM_PATH")"
+  shasum -a 256 "$(basename "$DMG_PATH")" > "$(basename "$CHECKSUM_PATH")"
 )
 
 rm -rf "$STAGE_DIR"
 
-echo "Created artifact: $ZIP_PATH"
+echo "Created artifact: $DMG_PATH"
 echo "Created checksum: $CHECKSUM_PATH"
 echo "Release mode: unsigned (not notarized)"
