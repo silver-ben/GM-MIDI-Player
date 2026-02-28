@@ -28,7 +28,8 @@ mkdir -p "$STAGE_DIR"
 
 STAGED_COMPONENT="$STAGE_DIR/GM DLS Player.component"
 cp -R "$SOURCE_COMPONENT" "$STAGED_COMPONENT"
-xattr -cr "$STAGED_COMPONENT" 2>/dev/null || true
+# Keep Finder bundle metadata so .component is shown as a package, only clear quarantine if present.
+xattr -dr com.apple.quarantine "$STAGED_COMPONENT" 2>/dev/null || true
 
 ARTIFACT_BASENAME="GM-DLS-Player-v${VERSION}"
 DMG_PATH="$RELEASE_DIR/${ARTIFACT_BASENAME}.dmg"
