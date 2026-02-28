@@ -14,6 +14,13 @@ static NSInteger GMDLSClampProgram(NSInteger value) {
     return value;
 }
 
+static NSInteger GMDLSClampInstrumentControlMode(NSInteger value) {
+    if (value <= 0) {
+        return 0;
+    }
+    return 1;
+}
+
 static NSColor *GMDLSColorBackgroundApp(void) {
     return [NSColor colorWithSRGBRed:18.0 / 255.0 green:20.0 / 255.0 blue:28.0 / 255.0 alpha:1.0];
 }
@@ -312,6 +319,7 @@ static void GMDLSStyleReadout(NSTextField *field, NSTextAlignment alignment) {
     NSMutableArray<NSNumber *> *_filteredPrograms;
     NSMutableArray<GMDLSProgramCellView *> *_programCells;
     NSInteger _currentProgram;
+    NSInteger _instrumentControlMode;
     BOOL _updatingSelection;
 
     GMDLSFlippedView *_panel;
@@ -319,6 +327,8 @@ static void GMDLSStyleReadout(NSTextField *field, NSTextAlignment alignment) {
     NSTextField *_subtitleLabel;
     NSTextField *_currentProgramField;
     NSTextField *_currentNameLabel;
+    NSTextField *_modeLabel;
+    NSSegmentedControl *_modeControl;
     NSTextField *_searchLabel;
     NSTextField *_searchField;
     NSScrollView *_scrollView;
@@ -336,6 +346,7 @@ static void GMDLSStyleReadout(NSTextField *field, NSTextAlignment alignment) {
 
     _audioUnit = audioUnit;
     _currentProgram = 0;
+    _instrumentControlMode = 0;
     _programNames = CFBridgingRelease(GMDLSCopyGMProgramNames());
     if (_programNames.count != 128) {
         _programNames = @[];
@@ -365,6 +376,20 @@ static void GMDLSStyleReadout(NSTextField *field, NSTextAlignment alignment) {
 
     _currentNameLabel = GMDLSMakeLabel(12.0, NSFontWeightMedium, GMDLSColorPrimaryText(), NSTextAlignmentRight);
     [_panel addSubview:_currentNameLabel];
+
+    _modeLabel = GMDLSMakeLabel(10.0, NSFontWeightSemibold, GMDLSColorSecondaryText(), NSTextAlignmentLeft);
+    _modeLabel.stringValue = @"INSTRUMENT SOURCE";
+    [_panel addSubview:_modeLabel];
+
+    _modeControl = [[NSSegmentedControl alloc] initWithFrame:NSZeroRect];
+    [_modeControl setSegmentCount:2];
+    [_modeControl setLabel:@"Host MIDI" forSegment:0];
+    [_modeControl setLabel:@"Plugin UI" forSegment:1];
+    _modeControl.trackingMode = NSSegmentSwitchTrackingSelectOne;
+    _modeControl.target = self;
+    _modeControl.action = @selector(modeControlChanged:);
+    _modeControl.selectedSegment = 0;
+    [_panel addSubview:_modeControl];
 
     _searchLabel = GMDLSMakeLabel(10.0, NSFontWeightSemibold, GMDLSColorSecondaryText(), NSTextAlignmentLeft);
     _searchLabel.stringValue = @"SEARCH";
@@ -471,6 +496,17 @@ static void GMDLSStyleReadout(NSTextField *field, NSTextAlignment alignment) {
                                          360.0,
                                          16.0);
     y += 22.0;
+
+    _modeLabel.frame = NSMakeRect(inner.origin.x,
+                                  y,
+                                  130.0,
+                                  14.0);
+    CGFloat modeControlWidth = MIN(300.0, MAX(180.0, inner.size.width - 138.0));
+    _modeControl.frame = NSMakeRect(inner.origin.x + 138.0,
+                                    y - 3.0,
+                                    modeControlWidth,
+                                    22.0);
+    y += 24.0;
 
     _searchLabel.frame = NSMakeRect(inner.origin.x,
                                     y,
@@ -606,6 +642,10 @@ static void GMDLSStyleReadout(NSTextField *field, NSTextAlignment alignment) {
     [self scrollCurrentProgramIntoView];
 }
 
+- (void)modeControlChanged:(NSSegmentedControl *)sender {
+    [self setInstrumentControlMode:sender.selectedSegment pushToAudioUnit:YES];
+}
+
 - (void)setProgram:(NSInteger)program pushToAudioUnit:(BOOL)push {
     NSInteger clamped = GMDLSClampProgram(program);
     BOOL changed = (_currentProgram != clamped);
@@ -619,6 +659,25 @@ static void GMDLSStyleReadout(NSTextField *field, NSTextAlignment alignment) {
 
     AudioUnitSetParameter(_audioUnit,
                           kGMDLSProgramParameterID,
+                          kAudioUnitScope_Global,
+                          0,
+                          (AudioUnitParameterValue)clamped,
+                          0);
+}
+
+- (void)setInstrumentControlMode:(NSInteger)mode pushToAudioUnit:(BOOL)push {
+    NSInteger clamped = GMDLSClampInstrumentControlMode(mode);
+    BOOL changed = (_instrumentControlMode != clamped);
+    _instrumentControlMode = clamped;
+
+    [self updateInstrumentControlUI];
+
+    if (!push || !changed || _audioUnit == NULL || _updatingSelection) {
+        return;
+    }
+
+    AudioUnitSetParameter(_audioUnit,
+                          kGMDLSInstrumentControlModeParameterID,
                           kAudioUnitScope_Global,
                           0,
                           (AudioUnitParameterValue)clamped,
@@ -639,6 +698,10 @@ static void GMDLSStyleReadout(NSTextField *field, NSTextAlignment alignment) {
     }
 }
 
+- (void)updateInstrumentControlUI {
+    _modeControl.selectedSegment = _instrumentControlMode;
+}
+
 - (void)scrollCurrentProgramIntoView {
     for (GMDLSProgramCellView *cell in _programCells) {
         if (cell.program == _currentProgram) {
@@ -653,23 +716,37 @@ static void GMDLSStyleReadout(NSTextField *field, NSTextAlignment alignment) {
         return;
     }
 
-    AudioUnitParameterValue value = 0;
-    OSStatus status = AudioUnitGetParameter(_audioUnit,
-                                            kGMDLSProgramParameterID,
-                                            kAudioUnitScope_Global,
-                                            0,
-                                            &value);
-    if (status != noErr) {
+    AudioUnitParameterValue programValue = 0;
+    AudioUnitParameterValue modeValue = 0;
+    BOOL gotProgram = (AudioUnitGetParameter(_audioUnit,
+                                             kGMDLSProgramParameterID,
+                                             kAudioUnitScope_Global,
+                                             0,
+                                             &programValue) == noErr);
+    BOOL gotMode = (AudioUnitGetParameter(_audioUnit,
+                                          kGMDLSInstrumentControlModeParameterID,
+                                          kAudioUnitScope_Global,
+                                          0,
+                                          &modeValue) == noErr);
+    if (!gotProgram && !gotMode) {
         return;
     }
 
-    NSInteger clamped = GMDLSClampProgram((NSInteger)llround(value));
-    if (_currentProgram == clamped) {
+    NSInteger clampedProgram = GMDLSClampProgram((NSInteger)llround(programValue));
+    NSInteger clampedMode = GMDLSClampInstrumentControlMode((NSInteger)llround(modeValue));
+    BOOL programChanged = gotProgram && (_currentProgram != clampedProgram);
+    BOOL modeChanged = gotMode && (_instrumentControlMode != clampedMode);
+    if (!programChanged && !modeChanged) {
         return;
     }
 
     _updatingSelection = YES;
-    [self setProgram:clamped pushToAudioUnit:NO];
+    if (programChanged) {
+        [self setProgram:clampedProgram pushToAudioUnit:NO];
+    }
+    if (modeChanged) {
+        [self setInstrumentControlMode:clampedMode pushToAudioUnit:NO];
+    }
     _updatingSelection = NO;
 }
 

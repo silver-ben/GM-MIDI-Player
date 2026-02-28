@@ -8,8 +8,8 @@ A free AUv2 MIDI instrument plugin for macOS. Plays all 128 General MIDI patches
 
 ## Install
 
-1. Download **GM-DLS-Player-v2.0.1.dmg** from the link above
-2. Open the DMG
+1. Download the latest release asset from the link above
+2. Extract or open the downloaded archive
 3. Copy **GM DLS Player.component** to `~/Library/Audio/Plug-Ins/Components/`
 4. Open your DAW and rescan plug-ins
 
@@ -39,8 +39,18 @@ Then restart your DAW.
 ## Building from Source
 
 ```bash
-./GM-MIDI-AU/scripts/build_release.sh
+./GM-MIDI-AU/scripts/build.sh --release
 ./GM-MIDI-AU/scripts/install_component.sh
 ```
+
+## Packaging a Release (Unsigned)
+
+```bash
+./GM-MIDI-AU/scripts/package_release.sh
+```
+
+Outputs:
+- `GM-MIDI-AU/build/release/GM-DLS-Player-v<version>.zip`
+- `GM-MIDI-AU/build/release/GM-DLS-Player-v<version>-SHA256.txt`
 
 Built and maintained by Ben Silver.

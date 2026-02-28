@@ -4,6 +4,7 @@
 #import <Foundation/Foundation.h>
 
 extern const AudioUnitParameterID kGMDLSProgramParameterID;
+extern const AudioUnitParameterID kGMDLSInstrumentControlModeParameterID;
 extern NSString * const kGMDLSCocoaViewFactoryClassName;
 
 #ifdef __cplusplus

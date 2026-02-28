@@ -1,6 +1,7 @@
 #import "GMDLSShared.h"
 
 const AudioUnitParameterID kGMDLSProgramParameterID = 1000;
+const AudioUnitParameterID kGMDLSInstrumentControlModeParameterID = 1001;
 NSString * const kGMDLSCocoaViewFactoryClassName = @"GMDLSPlayerViewFactory";
 
 static NSArray<NSString *> *GMDLSProgramNames(void) {

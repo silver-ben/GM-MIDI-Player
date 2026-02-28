@@ -16,6 +16,9 @@ namespace {
 constexpr UInt8 kGMDefaultProgram = 0;
 constexpr UInt8 kProgramMin = 0;
 constexpr UInt8 kProgramMax = 127;
+constexpr UInt8 kInstrumentControlModeFollowHostMIDI = 0;
+constexpr UInt8 kInstrumentControlModeLockPluginUI = 1;
+constexpr UInt8 kInstrumentControlModeDefault = kInstrumentControlModeFollowHostMIDI;
 constexpr Float64 kDefaultSampleRate = 44100.0;
 constexpr UInt32 kPluginVersion = 0x00020001;
 constexpr OSStatus kAUNonFatalStatus = 1;
@@ -28,6 +31,11 @@ constexpr UInt32 kMaxRenderFrames = 32768;
 const AUChannelInfo kSupportedOutputConfigs[] = {
     {0, 1},
     {0, 2}
+};
+
+const AudioUnitParameterID kSupportedParameterIDs[] = {
+    kGMDLSProgramParameterID,
+    kGMDLSInstrumentControlModeParameterID
 };
 
 class GMDLSPlayerUnit;
@@ -44,6 +52,29 @@ static UInt8 ClampProgram(AudioUnitParameterValue value) {
     long rounded = lroundf(value);
     rounded = std::max<long>(kProgramMin, std::min<long>(kProgramMax, rounded));
     return static_cast<UInt8>(rounded);
+}
+
+static UInt8 ClampInstrumentControlMode(AudioUnitParameterValue value) {
+    long rounded = lroundf(value);
+    rounded = std::max<long>(kInstrumentControlModeFollowHostMIDI, std::min<long>(kInstrumentControlModeLockPluginUI, rounded));
+    return static_cast<UInt8>(rounded);
+}
+
+static CFArrayRef CopyInstrumentControlModeNames(void) {
+    const void *names[] = {
+        CFSTR("Follow Host MIDI"),
+        CFSTR("Lock Instrument to Plugin UI")
+    };
+    return CFArrayCreate(kCFAllocatorDefault,
+                         names,
+                         static_cast<CFIndex>(sizeof(names) / sizeof(names[0])),
+                         &kCFTypeArrayCallBacks);
+}
+
+static NSString *InstrumentControlModeDisplayName(UInt8 mode) {
+    return mode == kInstrumentControlModeLockPluginUI
+        ? @"Lock Instrument to Plugin UI"
+        : @"Follow Host MIDI";
 }
 
 static bool IsFatalStatus(OSStatus status) {
@@ -108,7 +139,7 @@ static bool IsSupportedHostOutputFormat(const AudioStreamBasicDescription &forma
     return true;
 }
 
-static CFDictionaryRef CopyClassInfo(UInt8 program) {
+static CFDictionaryRef CopyClassInfo(UInt8 program, UInt8 instrumentControlMode) {
     CFMutableDictionaryRef classInfo = CFDictionaryCreateMutable(kCFAllocatorDefault,
                                                                  0,
                                                                  &kCFTypeDictionaryKeyCallBacks,
@@ -144,8 +175,10 @@ static CFDictionaryRef CopyClassInfo(UInt8 program) {
                                                             &kCFTypeDictionaryKeyCallBacks,
                                                             &kCFTypeDictionaryValueCallBacks);
     SInt32 programValue = static_cast<SInt32>(program);
+    SInt32 instrumentControlModeValue = static_cast<SInt32>(instrumentControlMode);
     CFNumberRef programNumber = CFNumberCreate(kCFAllocatorDefault, kCFNumberSInt32Type, &programValue);
-    if (versionNumber == nullptr || data == nullptr || programNumber == nullptr) {
+    CFNumberRef instrumentControlModeNumber = CFNumberCreate(kCFAllocatorDefault, kCFNumberSInt32Type, &instrumentControlModeValue);
+    if (versionNumber == nullptr || data == nullptr || programNumber == nullptr || instrumentControlModeNumber == nullptr) {
         if (versionNumber != nullptr) {
             CFRelease(versionNumber);
         }
@@ -154,6 +187,9 @@ static CFDictionaryRef CopyClassInfo(UInt8 program) {
         }
         if (programNumber != nullptr) {
             CFRelease(programNumber);
+        }
+        if (instrumentControlModeNumber != nullptr) {
+            CFRelease(instrumentControlModeNumber);
         }
         CFRelease(type);
         CFRelease(subtype);
@@ -168,19 +204,25 @@ static CFDictionaryRef CopyClassInfo(UInt8 program) {
     CFDictionarySetValue(classInfo, CFSTR(kAUPresetManufacturerKey), manufacturer);
     CFDictionarySetValue(classInfo, CFSTR(kAUPresetNameKey), CFSTR("GM DLS Player"));
     CFDictionarySetValue(data, CFSTR("program"), programNumber);
+    CFDictionarySetValue(data, CFSTR("instrumentControlMode"), instrumentControlModeNumber);
     CFDictionarySetValue(classInfo, CFSTR(kAUPresetDataKey), data);
 
     CFRelease(versionNumber);
     CFRelease(data);
     CFRelease(programNumber);
+    CFRelease(instrumentControlModeNumber);
     CFRelease(type);
     CFRelease(subtype);
     CFRelease(manufacturer);
     return classInfo;
 }
 
-static bool ExtractProgramFromClassInfo(CFPropertyListRef classInfo, UInt8 *outProgram) {
-    if (classInfo == nullptr || outProgram == nullptr) {
+static bool ExtractUInt8FromClassInfo(CFPropertyListRef classInfo,
+                                      CFStringRef key,
+                                      UInt8 minValue,
+                                      UInt8 maxValue,
+                                      UInt8 *outValue) {
+    if (classInfo == nullptr || key == nullptr || outValue == nullptr) {
         return false;
     }
 
@@ -195,33 +237,63 @@ static bool ExtractProgramFromClassInfo(CFPropertyListRef classInfo, UInt8 *outP
         dataDict = static_cast<CFDictionaryRef>(dataValue);
     }
 
-    CFNumberRef programNumber = nullptr;
+    CFNumberRef number = nullptr;
     if (dataDict != nullptr) {
-        CFTypeRef programValue = CFDictionaryGetValue(dataDict, CFSTR("program"));
-        if (programValue != nullptr && CFGetTypeID(programValue) == CFNumberGetTypeID()) {
-            programNumber = static_cast<CFNumberRef>(programValue);
+        CFTypeRef dataKeyValue = CFDictionaryGetValue(dataDict, key);
+        if (dataKeyValue != nullptr && CFGetTypeID(dataKeyValue) == CFNumberGetTypeID()) {
+            number = static_cast<CFNumberRef>(dataKeyValue);
         }
     }
 
-    if (programNumber == nullptr) {
-        CFTypeRef rootProgramValue = CFDictionaryGetValue(classInfoDict, CFSTR("program"));
-        if (rootProgramValue != nullptr && CFGetTypeID(rootProgramValue) == CFNumberGetTypeID()) {
-            programNumber = static_cast<CFNumberRef>(rootProgramValue);
+    if (number == nullptr) {
+        CFTypeRef rootKeyValue = CFDictionaryGetValue(classInfoDict, key);
+        if (rootKeyValue != nullptr && CFGetTypeID(rootKeyValue) == CFNumberGetTypeID()) {
+            number = static_cast<CFNumberRef>(rootKeyValue);
         }
     }
 
-    if (programNumber == nullptr) {
+    if (number == nullptr) {
         return false;
     }
 
-    SInt32 rawProgram = 0;
-    if (!CFNumberGetValue(programNumber, kCFNumberSInt32Type, &rawProgram)) {
+    SInt32 rawValue = 0;
+    if (!CFNumberGetValue(number, kCFNumberSInt32Type, &rawValue)) {
         return false;
     }
 
-    rawProgram = std::max<SInt32>(kProgramMin, std::min<SInt32>(kProgramMax, rawProgram));
-    *outProgram = static_cast<UInt8>(rawProgram);
+    rawValue = std::max<SInt32>(minValue, std::min<SInt32>(maxValue, rawValue));
+    *outValue = static_cast<UInt8>(rawValue);
     return true;
+}
+
+static bool ExtractProgramFromClassInfo(CFPropertyListRef classInfo, UInt8 *outProgram) {
+    return ExtractUInt8FromClassInfo(classInfo, CFSTR("program"), kProgramMin, kProgramMax, outProgram);
+}
+
+static bool ExtractInstrumentControlModeFromClassInfo(CFPropertyListRef classInfo, UInt8 *outMode) {
+    return ExtractUInt8FromClassInfo(classInfo,
+                                     CFSTR("instrumentControlMode"),
+                                     kInstrumentControlModeFollowHostMIDI,
+                                     kInstrumentControlModeLockPluginUI,
+                                     outMode);
+}
+
+static bool IsProgramSelectionLocked(UInt8 mode) {
+    return mode == kInstrumentControlModeLockPluginUI;
+}
+
+static bool IsBankSelectController(UInt8 controller) {
+    return controller == 0 || controller == 32;
+}
+
+static bool IsProgramOrBankSelectMIDIEvent(UInt8 statusHigh, UInt8 data1) {
+    if (statusHigh == 0xC0) {
+        return true;
+    }
+    if (statusHigh == 0xB0 && IsBankSelectController(data1)) {
+        return true;
+    }
+    return false;
 }
 
 class GMDLSPlayerUnit {
@@ -229,6 +301,7 @@ public:
     explicit GMDLSPlayerUnit()
         : mSynthUnit(nullptr),
           mCurrentProgram(kGMDefaultProgram),
+          mInstrumentControlMode(kInstrumentControlModeDefault),
           mInitialized(false),
           mCreationStatus(noErr),
           mClientOutputFormat(MakeFloat32PCMFormat(kDefaultSampleRate, 2, true)),
@@ -339,18 +412,20 @@ public:
 
             case kAudioUnitProperty_ParameterList:
                 if (inScope == kAudioUnitScope_Global) {
-                    return writePropertyInfo(sizeof(AudioUnitParameterID), false);
+                    return writePropertyInfo(sizeof(kSupportedParameterIDs), false);
                 }
                 return writePropertyInfo(0, false);
 
             case kAudioUnitProperty_ParameterInfo:
-                if (inScope == kAudioUnitScope_Global && inElement == kGMDLSProgramParameterID) {
+                if (inScope == kAudioUnitScope_Global &&
+                    (inElement == kGMDLSProgramParameterID || inElement == kGMDLSInstrumentControlModeParameterID)) {
                     return writePropertyInfo(sizeof(AudioUnitParameterInfo), false);
                 }
                 return kAudioUnitErr_InvalidParameter;
 
             case kAudioUnitProperty_ParameterValueStrings:
-                if (inScope == kAudioUnitScope_Global && inElement == kGMDLSProgramParameterID) {
+                if (inScope == kAudioUnitScope_Global &&
+                    (inElement == kGMDLSProgramParameterID || inElement == kGMDLSInstrumentControlModeParameterID)) {
                     return writePropertyInfo(sizeof(CFArrayRef), false);
                 }
                 return kAudioUnitErr_InvalidParameter;
@@ -448,17 +523,16 @@ public:
                 if (inScope != kAudioUnitScope_Global) {
                     return kAudioUnitErr_InvalidScope;
                 }
-                if (*ioDataSize < sizeof(AudioUnitParameterID)) {
+                if (*ioDataSize < sizeof(kSupportedParameterIDs)) {
                     return kAudio_ParamError;
                 }
-                auto *parameterID = static_cast<AudioUnitParameterID *>(outData);
-                *parameterID = kGMDLSProgramParameterID;
-                *ioDataSize = sizeof(AudioUnitParameterID);
+                std::memcpy(outData, kSupportedParameterIDs, sizeof(kSupportedParameterIDs));
+                *ioDataSize = sizeof(kSupportedParameterIDs);
                 return noErr;
             }
 
             case kAudioUnitProperty_ParameterInfo: {
-                if (inScope != kAudioUnitScope_Global || inElement != kGMDLSProgramParameterID) {
+                if (inScope != kAudioUnitScope_Global) {
                     return kAudioUnitErr_InvalidParameter;
                 }
                 if (*ioDataSize < sizeof(AudioUnitParameterInfo)) {
@@ -467,30 +541,52 @@ public:
 
                 auto *info = static_cast<AudioUnitParameterInfo *>(outData);
                 *info = {};
-                strlcpy(info->name, "GM Program", sizeof(info->name));
-                info->minValue = kProgramMin;
-                info->maxValue = kProgramMax;
-                info->defaultValue = kGMDefaultProgram;
-                info->unit = kAudioUnitParameterUnit_Indexed;
-                info->flags = kAudioUnitParameterFlag_IsReadable |
-                              kAudioUnitParameterFlag_IsWritable |
-                              kAudioUnitParameterFlag_HasName |
-                              kAudioUnitParameterFlag_ValuesHaveStrings |
-                              kAudioUnitParameterFlag_HasCFNameString;
-                info->cfNameString = CFStringCreateCopy(kCFAllocatorDefault, CFSTR("GM Program"));
+                if (inElement == kGMDLSProgramParameterID) {
+                    strlcpy(info->name, "GM Program", sizeof(info->name));
+                    info->minValue = kProgramMin;
+                    info->maxValue = kProgramMax;
+                    info->defaultValue = kGMDefaultProgram;
+                    info->unit = kAudioUnitParameterUnit_Indexed;
+                    info->flags = kAudioUnitParameterFlag_IsReadable |
+                                  kAudioUnitParameterFlag_IsWritable |
+                                  kAudioUnitParameterFlag_HasName |
+                                  kAudioUnitParameterFlag_ValuesHaveStrings |
+                                  kAudioUnitParameterFlag_HasCFNameString;
+                    info->cfNameString = CFStringCreateCopy(kCFAllocatorDefault, CFSTR("GM Program"));
+                } else if (inElement == kGMDLSInstrumentControlModeParameterID) {
+                    strlcpy(info->name, "Instrument Source", sizeof(info->name));
+                    info->minValue = kInstrumentControlModeFollowHostMIDI;
+                    info->maxValue = kInstrumentControlModeLockPluginUI;
+                    info->defaultValue = kInstrumentControlModeDefault;
+                    info->unit = kAudioUnitParameterUnit_Indexed;
+                    info->flags = kAudioUnitParameterFlag_IsReadable |
+                                  kAudioUnitParameterFlag_IsWritable |
+                                  kAudioUnitParameterFlag_HasName |
+                                  kAudioUnitParameterFlag_ValuesHaveStrings |
+                                  kAudioUnitParameterFlag_HasCFNameString;
+                    info->cfNameString = CFStringCreateCopy(kCFAllocatorDefault, CFSTR("Instrument Source"));
+                } else {
+                    return kAudioUnitErr_InvalidParameter;
+                }
                 *ioDataSize = sizeof(AudioUnitParameterInfo);
                 return noErr;
             }
 
             case kAudioUnitProperty_ParameterValueStrings: {
-                if (inScope != kAudioUnitScope_Global || inElement != kGMDLSProgramParameterID) {
+                if (inScope != kAudioUnitScope_Global) {
                     return kAudioUnitErr_InvalidParameter;
                 }
                 if (*ioDataSize < sizeof(CFArrayRef)) {
                     return kAudio_ParamError;
                 }
                 auto *arrayOut = static_cast<CFArrayRef *>(outData);
-                *arrayOut = GMDLSCopyGMProgramNames();
+                if (inElement == kGMDLSProgramParameterID) {
+                    *arrayOut = GMDLSCopyGMProgramNames();
+                } else if (inElement == kGMDLSInstrumentControlModeParameterID) {
+                    *arrayOut = CopyInstrumentControlModeNames();
+                } else {
+                    return kAudioUnitErr_InvalidParameter;
+                }
                 *ioDataSize = sizeof(CFArrayRef);
                 return noErr;
             }
@@ -504,16 +600,22 @@ public:
                 }
 
                 auto *stringFromValue = static_cast<AudioUnitParameterStringFromValue *>(outData);
-                if (stringFromValue->inParamID != kGMDLSProgramParameterID) {
+                if (stringFromValue->inParamID == kGMDLSProgramParameterID) {
+                    AudioUnitParameterValue programValue = stringFromValue->inValue != nullptr
+                        ? *stringFromValue->inValue
+                        : static_cast<AudioUnitParameterValue>(mCurrentProgram.load(std::memory_order_relaxed));
+                    UInt8 program = ClampProgram(programValue);
+                    stringFromValue->outString = (__bridge_retained CFStringRef)GMDLSProgramDisplayName(program);
+                } else if (stringFromValue->inParamID == kGMDLSInstrumentControlModeParameterID) {
+                    AudioUnitParameterValue modeValue = stringFromValue->inValue != nullptr
+                        ? *stringFromValue->inValue
+                        : static_cast<AudioUnitParameterValue>(mInstrumentControlMode.load(std::memory_order_relaxed));
+                    UInt8 mode = ClampInstrumentControlMode(modeValue);
+                    stringFromValue->outString = (__bridge_retained CFStringRef)InstrumentControlModeDisplayName(mode);
+                } else {
                     stringFromValue->outString = nullptr;
                     return kAudioUnitErr_InvalidParameter;
                 }
-
-                AudioUnitParameterValue programValue = stringFromValue->inValue != nullptr
-                    ? *stringFromValue->inValue
-                    : static_cast<AudioUnitParameterValue>(mCurrentProgram.load(std::memory_order_relaxed));
-                UInt8 program = ClampProgram(programValue);
-                stringFromValue->outString = (__bridge_retained CFStringRef)GMDLSProgramDisplayName(program);
                 *ioDataSize = sizeof(AudioUnitParameterStringFromValue);
                 return noErr;
             }
@@ -556,7 +658,8 @@ public:
                     return kAudio_ParamError;
                 }
 
-                CFDictionaryRef classInfo = CopyClassInfo(mCurrentProgram.load(std::memory_order_relaxed));
+                CFDictionaryRef classInfo = CopyClassInfo(mCurrentProgram.load(std::memory_order_relaxed),
+                                                          mInstrumentControlMode.load(std::memory_order_relaxed));
                 if (classInfo == nullptr) {
                     return memFullErr;
                 }
@@ -655,6 +758,11 @@ public:
                     (void)ApplyProgramToAllChannels(program, 0);
                 }
             }
+
+            UInt8 mode = mInstrumentControlMode.load(std::memory_order_relaxed);
+            if (ExtractInstrumentControlModeFromClassInfo(classInfo, &mode)) {
+                mInstrumentControlMode.store(mode, std::memory_order_relaxed);
+            }
             return noErr;
         }
 
@@ -728,6 +836,10 @@ public:
             *outValue = static_cast<AudioUnitParameterValue>(mCurrentProgram.load(std::memory_order_relaxed));
             return noErr;
         }
+        if (inID == kGMDLSInstrumentControlModeParameterID && inScope == kAudioUnitScope_Global) {
+            *outValue = static_cast<AudioUnitParameterValue>(mInstrumentControlMode.load(std::memory_order_relaxed));
+            return noErr;
+        }
 
         if (mSynthUnit == nullptr) {
             return kAudioUnitErr_Uninitialized;
@@ -746,6 +858,14 @@ public:
             mCurrentProgram.store(program, std::memory_order_relaxed);
             if (mInitialized.load(std::memory_order_relaxed)) {
                 (void)ApplyProgramToAllChannels(program, inBufferOffsetInFrames);
+            }
+            return noErr;
+        }
+        if (inID == kGMDLSInstrumentControlModeParameterID && inScope == kAudioUnitScope_Global && inElement == 0) {
+            UInt8 mode = ClampInstrumentControlMode(inValue);
+            mInstrumentControlMode.store(mode, std::memory_order_relaxed);
+            if (mInitialized.load(std::memory_order_relaxed) && IsProgramSelectionLocked(mode)) {
+                (void)ApplyProgramToAllChannels(mCurrentProgram.load(std::memory_order_relaxed), inBufferOffsetInFrames);
             }
             return noErr;
         }
@@ -847,9 +967,15 @@ public:
 
         const UInt8 statusHigh = static_cast<UInt8>(inStatus & 0xF0);
         const UInt8 channel = static_cast<UInt8>(inStatus & 0x0F);
+        const UInt8 data1 = static_cast<UInt8>(inData1 & 0x7F);
+
+        if (IsProgramSelectionLocked(mInstrumentControlMode.load(std::memory_order_relaxed)) &&
+            IsProgramOrBankSelectMIDIEvent(statusHigh, data1)) {
+            return noErr;
+        }
 
         if (statusHigh == 0xC0 && channel == 0) {
-            mCurrentProgram.store(static_cast<UInt8>(inData1 & 0x7F), std::memory_order_relaxed);
+            mCurrentProgram.store(data1, std::memory_order_relaxed);
         }
 
         return MusicDeviceMIDIEvent(mSynthUnit, inStatus, inData1, inData2, inOffsetSampleFrame);
@@ -942,6 +1068,7 @@ private:
 private:
     AudioUnit mSynthUnit;
     std::atomic<UInt8> mCurrentProgram;
+    std::atomic<UInt8> mInstrumentControlMode;
     std::atomic<bool> mInitialized;
     OSStatus mCreationStatus;
     AudioStreamBasicDescription mClientOutputFormat;
